@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tính Toán Công Suất Máy Bơm & Cột Áp Bơm - 2026</title>
+    <title>Tính Toán Công Suất Máy Bơm & Cột Áp Bơm - HueWACO</title>
     <style>
         :root {
             --excel-header-bg: #107c41;
@@ -166,7 +166,6 @@
         .result-value { font-weight: 700; color: var(--accent-blue); font-size: 0.95rem; }
         .highlight { color: #d83b01; font-size: 1rem; }
 
-        /* Cảnh báo dòng inline */
         .inline-warn {
             display: none;
             font-size: 0.78rem;
@@ -195,7 +194,6 @@
         .badge-red { background-color: #f8b4b4; color: #9b1c1c; }
         .badge-yellow { background-color: #fef08a; color: #713f12; }
 
-        /* Footer Copyright */
         .footer-copyright {
             margin-top: 15px;
             padding-top: 8px;
@@ -242,11 +240,11 @@
             </div>
 
             <div class="form-group">
-                <label for="h_head">Áp lực yêu cầu đầu (m):</label>
+                <label for="h_head">Áp lực có sẵn điểm đầu (m):</label>
                 <input type="number" id="h_head" value="40" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
             </div>
             <div class="form-group">
-                <label for="h_tail">Áp lực yêu cầu cuối (m):</label>
+                <label for="h_tail">Áp lực yêu cầu điểm cuối (m):</label>
                 <input type="number" id="h_tail" value="15" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
             </div>
             <div class="form-group">
@@ -414,10 +412,10 @@
         const materialSelect = document.getElementById('material');
         const C = parseFloat(materialSelect.options[materialSelect.selectedIndex].getAttribute('data-c')) || 140;
 
-        const hHead = parseFloat(document.getElementById('h_head').value) || 0;
-        const hTail = parseFloat(document.getElementById('h_tail').value) || 0;
-        const zHead = parseFloat(document.getElementById('z_head').value) || 0;
-        const zTail = parseFloat(document.getElementById('z_tail').value) || 0;
+        const hHead = parseFloat(document.getElementById('h_head').value) || 0; // Áp lực có sẵn điểm đầu (m)
+        const hTail = parseFloat(document.getElementById('h_tail').value) || 0; // Áp lực yêu cầu điểm cuối (m)
+        const zHead = parseFloat(document.getElementById('z_head').value) || 0; // Cao độ Z điểm đầu (m)
+        const zTail = parseFloat(document.getElementById('z_tail').value) || 0; // Cao độ Z điểm cuối (m)
         const eta = parseFloat(document.getElementById('efficiency').value) || 0.75;
 
         if (qDay <= 0 || dMm <= 0 || L <= 0) {
@@ -430,13 +428,20 @@
             return;
         }
 
-        const qSec = qDay / 86400;
-        const dM = dMm / 1000;
+        const qSec = qDay / 86400; // m3/s
+        const dM = dMm / 1000;     // m
 
-        const hf = (11.767 * L * Math.pow(qSec, 1.852)) / (Math.pow(C, 1.852) * Math.pow(dM, 4.87));
+        // 1. Tính tổn thất dọc đường (Đã chỉnh về hằng số chuẩn 11.737)
+        const hf = (11.737 * L * Math.pow(qSec, 1.852)) / (Math.pow(C, 1.852) * Math.pow(dM, 4.87));
+        
+        // 2. Tính vận tốc dòng chảy trong ống
         const v = (4 * qSec) / (Math.PI * Math.pow(dM, 2));
+        
+        // 3. Tính Cột áp tổng máy bơm: H_bơm = (Z_cuối - Z_đầu) + (P_cuối - P_đầu_có_sẵn) + Hf
         const reqHead = (zTail - zHead) + (hTail - hHead) + hf;
-        const pOper = reqHead + hHead;
+        
+        // 4. Áp lực vận hành ngay sau máy bơm
+        const pOper = (zTail - zHead) + hTail + hf;
 
         document.getElementById('res_v').innerText = v.toFixed(3) + " m/s";
         document.getElementById('res_hf').innerText = hf.toFixed(2) + " m";
@@ -444,6 +449,7 @@
         document.getElementById('res_p_oper').innerText = reqHead > 0 ? pOper.toFixed(2) + " m" : "-";
         document.getElementById('res_power').innerText = reqHead > 0 ? ((9.81 * qSec * reqHead) / eta).toFixed(2) + " kW" : "0 kW";
 
+        // --- ĐÁNH GIÁ CẢNH BÁO KỸ THUẬT ---
         // 1. Vận tốc v
         if (v > 2.5) {
             setRowWarning('v', true, `Vận tốc dòng chảy cao (${v.toFixed(2)} m/s > 2.5 m/s): Nguy cơ va đập thủy lực (búa nước).`, 'red');
@@ -453,26 +459,26 @@
             setRowWarning('v', false);
         }
 
-        // 2. Tổn thất thủy lực Hf (Cảnh báo khi i >= 10 m/km hoặc tổng Hf >= 50m)
+        // 2. Tổn thất thủy lực Hf
         const iLoss = hf / (L / 1000); // m/km
         if (iLoss >= 10) {
-            setRowWarning('hf', true, `Tổn thất đơn vị lớn (i = ${iLoss.toFixed(2)} m/km ≥ 10 m/km): Nên cân nhắc tăng đường kính ống D để giảm ma sát & tiết kiệm điện năng.`, 'red');
+            setRowWarning('hf', true, `Tổn thất đơn vị lớn (i = ${iLoss.toFixed(2)} m/km ≥ 10 m/km): Nên tăng đường kính ống D để giảm ma sát & tiết kiệm điện năng.`, 'red');
         } else if (hf >= 50) {
             setRowWarning('hf', true, `Tổng tổn thất thủy lực lớn (Hf = ${hf.toFixed(2)} m ≥ 50 m): Tiêu hao nhiều điện năng trên đường ống dài.`, 'yellow');
         } else {
             setRowWarning('hf', false);
         }
 
-        // 3. Cột áp tổng máy bơm (>= 60 m)
+        // 3. Cột áp tổng máy bơm
         if (reqHead >= 60) {
-            setRowWarning('h_pump', true, `Cột áp máy bơm cao (H = ${reqHead.toFixed(2)} m ≥ 60 m): Cần tính toán chọn lại vị trí trạm tăng áp.`, 'red');
+            setRowWarning('h_pump', true, `Cột áp máy bơm cao (H = ${reqHead.toFixed(2)} m ≥ 60 m): Cần tính toán chọn vị trí trạm tăng áp.`, 'red');
         } else {
             setRowWarning('h_pump', false);
         }
 
-        // 4. Áp lực vận hành sau bơm (>= 60 m)
+        // 4. Áp lực vận hành sau bơm
         if (pOper >= 60) {
-            setRowWarning('p_oper', true, `Áp lực vận hành lớn (P = ${pOper.toFixed(2)} m ≈ ${(pOper/10).toFixed(1)} bar ≥ 60 m): Nguy hiểm cho đường ống và phụ kiện tuyến ống.`, 'red');
+            setRowWarning('p_oper', true, `Áp lực vận hành lớn (P = ${pOper.toFixed(2)} m ≈ ${(pOper/10).toFixed(1)} bar ≥ 60 m): Nguy hiểm cho đường ống & phụ kiện.`, 'red');
         } else {
             setRowWarning('p_oper', false);
         }
