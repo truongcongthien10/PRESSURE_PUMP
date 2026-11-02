@@ -524,13 +524,13 @@
         }
 
         if (reqHead >= 60) {
-            setRowWarning('h_pump', true, `Cột áp máy bơm cao (H = ${reqHead.toFixed(2)} m ≥ 60 m): Cần tính toán trạm bơm tăng áp trung gian.`, 'red');
+            setRowWarning('h_pump', true, `Cột áp máy bơm cao (H = ${reqHead.toFixed(2)} m ≥ 60 m): Cần tính toán trạm bơm tăng áp trung gian hoặc nâng đường kính ống.`, 'red');
         } else {
             setRowWarning('h_pump', false);
         }
 
         if (pOper >= 60) {
-            setRowWarning('p_oper', true, `Áp lực xuất xưởng cao (P = ${pOper.toFixed(2)} m ≈ ${(pOper/10).toFixed(1)} bar): Cần kiểm tra cấp áp lực PN của ống.`, 'red');
+            setRowWarning('p_oper', true, `Áp lực đầu ra bơm cao (P = ${pOper.toFixed(2)} m ≈ ${(pOper/10).toFixed(1)} bar): Cần kiểm tra cấp áp lực PN của ống.`, 'red');
         } else {
             setRowWarning('p_oper', false);
         }
