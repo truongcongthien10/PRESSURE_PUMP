@@ -62,6 +62,24 @@
             margin-bottom: 10px;
             font-size: 0.95rem;
             text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-reset-default {
+            font-size: 0.72rem;
+            font-weight: normal;
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            padding: 2px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #475569;
+        }
+        .btn-reset-default:hover {
+            background: #cbd5e1;
+            color: #0f172a;
         }
 
         .form-grid {
@@ -239,7 +257,10 @@
     <div class="header-bar">TÍNH TOÁN CÔNG SUẤT MÁY BƠM & CỘT ÁP BƠM - HUEWACO</div>
     
     <div class="content">
-        <div class="section-title">Dữ Liệu Đầu Vào Vận Hành</div>
+        <div class="section-title">
+            <span>Dữ Liệu Đầu Vào Vận Hành</span>
+            <button class="btn-reset-default" onclick="resetToDefaultInputs()" title="Khôi phục thông số nhập ban đầu">↺ Khôi phục mặc định</button>
+        </div>
         <div class="form-grid">
             
             <div class="form-group" style="grid-column: span 2;">
@@ -402,6 +423,8 @@
 </div>
 
 <script>
+    const STORAGE_KEY = "huewaco_pump_calc_inputs_v1";
+
     // DẢI CÔNG SUẤT MOTOR TIÊU CHUẨN THƯƠNG MẠI (IEC / NEMA STANDARD)
     const STANDARD_MOTORS = [
         0.75, 1.1, 1.5, 2.2, 3.0, 4.0, 5.5, 7.5, 11.0, 15.0, 18.5, 22.0, 30.0, 
@@ -440,10 +463,79 @@
         ]
     };
 
-    function updatePipeDiameters() {
+    // HÀM LƯU THÔNG SỐ ĐẦU VÀO VÀO LOCALSTORAGE
+    function saveInputsToStorage() {
+        const inputsData = {
+            q_val: document.getElementById('q_val').value,
+            q_unit: document.getElementById('q_unit').value,
+            material: document.getElementById('material').value,
+            d_mm: document.getElementById('d_mm').value,
+            length: document.getElementById('length').value,
+            local_loss_pct: document.getElementById('local_loss_pct').value,
+            h_head: document.getElementById('h_head').value,
+            h_tail: document.getElementById('h_tail').value,
+            z_head: document.getElementById('z_head').value,
+            z_tail: document.getElementById('z_tail').value,
+            efficiency: document.getElementById('efficiency').value
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(inputsData));
+    }
+
+    // HÀM TẢI LẠI THÔNG SỐ ĐÃ LƯU KHI F5 HOẶC MỞ TRANG
+    function loadSavedInputsFromStorage() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return false;
+
+        try {
+            const data = JSON.parse(saved);
+            if (data.q_val !== undefined) document.getElementById('q_val').value = data.q_val;
+            if (data.q_unit !== undefined) document.getElementById('q_unit').value = data.q_unit;
+            if (data.material !== undefined) document.getElementById('material').value = data.material;
+            
+            // Cập nhật lại danh sách kích thước ống tương ứng với vật liệu
+            updatePipeDiameters(false);
+
+            if (data.d_mm !== undefined && document.querySelector(`#d_mm option[value="${data.d_mm}"]`)) {
+                document.getElementById('d_mm').value = data.d_mm;
+            }
+            if (data.length !== undefined) document.getElementById('length').value = data.length;
+            if (data.local_loss_pct !== undefined) document.getElementById('local_loss_pct').value = data.local_loss_pct;
+            if (data.h_head !== undefined) document.getElementById('h_head').value = data.h_head;
+            if (data.h_tail !== undefined) document.getElementById('h_tail').value = data.h_tail;
+            if (data.z_head !== undefined) document.getElementById('z_head').value = data.z_head;
+            if (data.z_tail !== undefined) document.getElementById('z_tail').value = data.z_tail;
+            if (data.efficiency !== undefined) document.getElementById('efficiency').value = data.efficiency;
+
+            return true;
+        } catch(e) {
+            return false;
+        }
+    }
+
+    // KHÔI PHỤC THÔNG SỐ MẶC ĐỊNH KHI CẦN
+    function resetToDefaultInputs() {
+        if (confirm("Bạn có muốn khôi phục lại toàn bộ thông số đầu vào về mặc định?")) {
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('q_val').value = "416.7";
+            document.getElementById('q_unit').value = "m3h";
+            document.getElementById('material').value = "hdpe";
+            updatePipeDiameters(false);
+            document.getElementById('length').value = "18700";
+            document.getElementById('local_loss_pct').value = "1.10";
+            document.getElementById('h_head').value = "40";
+            document.getElementById('h_tail').value = "15";
+            document.getElementById('z_head').value = "3";
+            document.getElementById('z_tail').value = "6";
+            document.getElementById('efficiency').value = "0.75";
+            calculateHydraulics();
+        }
+    }
+
+    function updatePipeDiameters(shouldCalculate = true) {
         const materialSelect = document.getElementById('material');
         const selectedMaterial = materialSelect.value;
         const dSelect = document.getElementById('d_mm');
+        const prevVal = dSelect.value;
         dSelect.innerHTML = '';
 
         const pipes = pipeDatabase[selectedMaterial] || [];
@@ -457,7 +549,11 @@
             dSelect.appendChild(option);
         });
 
-        calculateHydraulics();
+        if (prevVal && dSelect.querySelector(`option[value="${prevVal}"]`)) {
+            dSelect.value = prevVal;
+        }
+
+        if (shouldCalculate) calculateHydraulics();
     }
 
     function setRowWarning(fieldId, isShow, text, level) {
@@ -481,6 +577,9 @@
     }
 
     function calculateHydraulics() {
+        // LƯU LẠI THÔNG SỐ VÀO LOCALSTORAGE
+        saveInputsToStorage();
+
         const qVal = parseFloat(document.getElementById('q_val').value) || 0;
         const qUnit = document.getElementById('q_unit').value;
         
@@ -516,7 +615,7 @@
 
         const dM = dMm / 1000;
 
-        // 1. Tổn thất thủy lực
+        // 1. Tổn thất thủy lực Hazen-Williams
         const baseCoeff = 10.67 * localLossCoeff;
         const hf = (baseCoeff * L * Math.pow(qSec, 1.852)) / (Math.pow(C, 1.852) * Math.pow(dM, 4.87));
         
@@ -596,7 +695,11 @@
     }
 
     window.onload = function() {
-        updatePipeDiameters();
+        const hasLoaded = loadSavedInputsFromStorage();
+        if (!hasLoaded) {
+            updatePipeDiameters(false);
+        }
+        calculateHydraulics();
     };
 </script>
 
