@@ -463,7 +463,6 @@
         ]
     };
 
-    // HÀM LƯU THÔNG SỐ ĐẦU VÀO VÀO LOCALSTORAGE
     function saveInputsToStorage() {
         const inputsData = {
             q_val: document.getElementById('q_val').value,
@@ -481,7 +480,6 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(inputsData));
     }
 
-    // HÀM TẢI LẠI THÔNG SỐ ĐÃ LƯU KHI F5 HOẶC MỞ TRANG
     function loadSavedInputsFromStorage() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (!saved) return false;
@@ -492,7 +490,6 @@
             if (data.q_unit !== undefined) document.getElementById('q_unit').value = data.q_unit;
             if (data.material !== undefined) document.getElementById('material').value = data.material;
             
-            // Cập nhật lại danh sách kích thước ống tương ứng với vật liệu
             updatePipeDiameters(false);
 
             if (data.d_mm !== undefined && document.querySelector(`#d_mm option[value="${data.d_mm}"]`)) {
@@ -512,7 +509,6 @@
         }
     }
 
-    // KHÔI PHỤC THÔNG SỐ MẶC ĐỊNH KHI CẦN
     function resetToDefaultInputs() {
         if (confirm("Bạn có muốn khôi phục lại toàn bộ thông số đầu vào về mặc định?")) {
             localStorage.removeItem(STORAGE_KEY);
@@ -577,7 +573,6 @@
     }
 
     function calculateHydraulics() {
-        // LƯU LẠI THÔNG SỐ VÀO LOCALSTORAGE
         saveInputsToStorage();
 
         const qVal = parseFloat(document.getElementById('q_val').value) || 0;
@@ -615,18 +610,18 @@
 
         const dM = dMm / 1000;
 
-        // 1. Tổn thất thủy lực Hazen-Williams
+        // 1. Tổn thất thủy lực Hazen-Williams (Hằng số 11.737 / 10.67 gộp tổn thất cục bộ)
         const baseCoeff = 10.67 * localLossCoeff;
         const hf = (baseCoeff * L * Math.pow(qSec, 1.852)) / (Math.pow(C, 1.852) * Math.pow(dM, 4.87));
         
         // 2. Vận tốc dòng chảy
         const v = (4 * qSec) / (Math.PI * Math.pow(dM, 2));
         
-        // 3. Cột áp bơm
+        // 3. Cột áp tổng máy bơm: H_bơm = (Z_cuối - Z_đầu) + (P_cuối - P_đầu_có_sẵn) + Hf
         const reqHead = (zTail - zHead) + (hTail - hHead) + hf;
         
-        // 4. Áp lực sau máy bơm
-        const pOper = (zTail - zHead) + hTail + hf;
+        // 4. Áp lực thực tế ngay sau máy bơm: P_sau_bơm = P_đầu_có_sẵn + H_bơm (Nếu cần bơm)
+        const pOper = reqHead > 0 ? (hHead + reqHead) : hHead;
 
         // 5. Công suất điện lý thuyết (kW & HP)
         const pKw = reqHead > 0 ? ((9.81 * qSec * reqHead) / eta) : 0;
@@ -646,12 +641,11 @@
         document.getElementById('res_v').innerText = v.toFixed(3) + " m/s";
         document.getElementById('res_hf').innerText = hf.toFixed(2) + " m";
         document.getElementById('res_h_pump').innerText = reqHead > 0 ? reqHead.toFixed(2) + " m" : "Không cần bơm";
-        document.getElementById('res_p_oper').innerText = reqHead > 0 ? pOper.toFixed(2) + " m" : "-";
+        document.getElementById('res_p_oper').innerText = pOper.toFixed(2) + " m";
         
         if (reqHead > 0) {
             document.getElementById('res_power').innerText = `${pKw.toFixed(2)} kW (${pHp.toFixed(1)} HP)`;
             
-            // Cập nhật thẻ Gợi ý Thực tế
             document.getElementById('opt_rec_val').innerText = `${recommendedMotor} kW (${(recommendedMotor * 1.341).toFixed(1)} HP)`;
             document.getElementById('opt_rec_desc').innerText = `Chạy ở ${loadPctRec}% tải định mức (Đã dự phòng 15% an toàn, tránh quá tải motor).`;
 
@@ -663,7 +657,7 @@
             document.getElementById('opt_fut_val').innerText = "0 kW";
         }
 
-        // --- ĐÁNH GIÁ CẢNH BÁO ---
+        // --- ĐÁNH GIÁ CẢNH BÁO KỸ THUẬT ---
         if (v > 2.5) {
             setRowWarning('v', true, `Vận tốc dòng chảy cao (${v.toFixed(2)} m/s > 2.5 m/s): Nguy cơ búa nước & tổn thất lớn.`, 'red');
         } else if (v < 0.6) {
