@@ -164,6 +164,50 @@
         .result-value { font-weight: 700; color: var(--accent-blue); font-size: 0.95rem; }
         .highlight { color: #d83b01; font-size: 1.05rem; }
 
+        /* KHỐI ĐỀ XUẤT CHỌN BƠM THỰC TẾ */
+        .motor-selection-panel {
+            margin-top: 10px;
+            padding: 10px;
+            background: #ffffff;
+            border: 1.5px solid #107c41;
+            border-radius: 6px;
+        }
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #107c41;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .option-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 8px 10px;
+            border-radius: 5px;
+            margin-bottom: 6px;
+        }
+        .option-card.recommended {
+            background: #f0fdf4;
+            border-color: #22c55e;
+            border-left: 4px solid #16a34a;
+        }
+        .option-card.future {
+            background: #eff6ff;
+            border-color: #60a5fa;
+            border-left: 4px solid #0284c7;
+        }
+        .opt-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+        .opt-desc {
+            font-size: 0.74rem;
+            color: #475569;
+            margin-top: 2px;
+        }
+
         .inline-warn {
             display: none;
             font-size: 0.78rem;
@@ -172,23 +216,9 @@
             border-radius: 4px;
             line-height: 1.35;
         }
-        .warn-red {
-            background-color: #fde8e8;
-            color: #9b1c1c;
-            border-left: 3px solid #f8b4b4;
-        }
-        .warn-yellow {
-            background-color: #fef08a;
-            color: #713f12;
-            border-left: 3px solid #eab308;
-        }
-        .status-badge {
-            font-size: 0.72rem;
-            padding: 2px 6px;
-            border-radius: 10px;
-            margin-left: 6px;
-            font-weight: 600;
-        }
+        .warn-red { background-color: #fde8e8; color: #9b1c1c; border-left: 3px solid #f8b4b4; }
+        .warn-yellow { background-color: #fef08a; color: #713f12; border-left: 3px solid #eab308; }
+        .status-badge { font-size: 0.72rem; padding: 2px 6px; border-radius: 10px; margin-left: 6px; font-weight: 600; }
         .badge-red { background-color: #f8b4b4; color: #9b1c1c; }
         .badge-yellow { background-color: #fef08a; color: #713f12; }
 
@@ -287,10 +317,9 @@
 
         <button class="btn-calc" onclick="calculateHydraulics()">🔄 Cập Nhật Tính Toán</button>
 
-        <div class="section-title">Kết Quả Tính Toán & Đánh Giá</div>
+        <div class="section-title">Kết Quả Tính Toán Thủy Lực</div>
         <div class="result-box">
             
-            <!-- Vận tốc -->
             <div class="result-row">
                 <div class="result-main">
                     <span class="result-label">Vận tốc dòng chảy (v):</span>
@@ -302,7 +331,6 @@
                 <div id="warn_v" class="inline-warn"></div>
             </div>
 
-            <!-- Tổn thất thủy lực Hf -->
             <div class="result-row">
                 <div class="result-main">
                     <span class="result-label">Tổn thất thủy lực (H<sub>f</sub>):</span>
@@ -314,7 +342,6 @@
                 <div id="warn_hf" class="inline-warn"></div>
             </div>
 
-            <!-- Cột áp tổng máy bơm -->
             <div class="result-row">
                 <div class="result-main">
                     <span class="result-label">Cột áp tổng máy bơm (H<sub>bơm</sub>):</span>
@@ -326,10 +353,9 @@
                 <div id="warn_h_pump" class="inline-warn"></div>
             </div>
 
-            <!-- Áp lực vận hành -->
             <div class="result-row">
                 <div class="result-main">
-                    <span class="result-label">Áp lực đầu ra sau bơm:</span>
+                    <span class="result-label">Áp lực sau máy bơm:</span>
                     <div>
                         <span class="result-value" id="res_p_oper">- m</span>
                         <span id="badge_p_oper"></span>
@@ -338,22 +364,34 @@
                 <div id="warn_p_oper" class="inline-warn"></div>
             </div>
 
-            <!-- Công suất Thủy lực & Công suất Điện -->
             <div class="result-row">
                 <div class="result-main">
-                    <span class="result-label">Công suất điện máy bơm:</span>
-                    <span class="result-value highlight" id="res_power">- kW (- HP)</span>
+                    <span class="result-label">Công suất điện tính toán:</span>
+                    <span class="result-value highlight" id="res_power">- kW</span>
                 </div>
             </div>
 
-            <!-- Gợi ý chọn Công suất Motor -->
-            <div class="result-row">
-                <div class="result-main">
-                    <span class="result-label">Đề xuất công suất Động cơ (Motor):</span>
-                    <span class="result-value" id="res_motor_suggest" style="color: #107c41;">- kW</span>
+        </div>
+
+        <!-- BẢNG GỢI Ý CHỌN LOẠI BƠM THỰC TẾ -->
+        <div class="motor-selection-panel" id="motorPanel">
+            <div class="panel-title">🛒 Đề xuất Chọn Động cơ Bơm Thương mại (Tiêu chuẩn IEC)</div>
+            
+            <div class="option-card recommended">
+                <div class="opt-header">
+                    <span style="color:#15803d;">✅ LỰA CHỌN TỐI ƯU HIỆN TẠI:</span>
+                    <span id="opt_rec_val" style="color:#16a34a; font-size:0.95rem;">- kW</span>
                 </div>
+                <div class="opt-desc" id="opt_rec_desc">Cung cấp đủ 100% công suất yêu cầu kèm hệ số an toàn.</div>
             </div>
 
+            <div class="option-card future">
+                <div class="opt-header">
+                    <span style="color:#0369a1;">🚀 LỰA CHỌN DỰ PHÒNG TƯƠNG LAI:</span>
+                    <span id="opt_fut_val" style="color:#0284c7; font-size:0.95rem;">- kW</span>
+                </div>
+                <div class="opt-desc" id="opt_fut_desc">Dự phòng sẵn công suất khi nhu cầu dùng nước tăng hoặc mở rộng mạng lưới.</div>
+            </div>
         </div>
 
         <div class="footer-copyright">
@@ -364,6 +402,12 @@
 </div>
 
 <script>
+    // DẢI CÔNG SUẤT MOTOR TIÊU CHUẨN THƯƠNG MẠI (IEC / NEMA STANDARD)
+    const STANDARD_MOTORS = [
+        0.75, 1.1, 1.5, 2.2, 3.0, 4.0, 5.5, 7.5, 11.0, 15.0, 18.5, 22.0, 30.0, 
+        37.0, 45.0, 55.0, 75.0, 90.0, 110.0, 132.0, 160.0, 200.0, 220.0, 250.0, 315.0, 400.0, 500.0
+    ];
+
     const pipeDatabase = {
         hdpe: [
             { dn: "DN63", id: 55.4 }, { dn: "DN75", id: 66.0 }, { dn: "DN90", id: 79.2 },
@@ -440,7 +484,6 @@
         const qVal = parseFloat(document.getElementById('q_val').value) || 0;
         const qUnit = document.getElementById('q_unit').value;
         
-        // Quy đổi lưu lượng Q ra m3/s
         let qSec = 0;
         if (qUnit === 'm3h') qSec = qVal / 3600;
         else if (qUnit === 'ls') qSec = qVal / 1000;
@@ -465,32 +508,41 @@
             document.getElementById('res_h_pump').innerText = "-";
             document.getElementById('res_p_oper').innerText = "-";
             document.getElementById('res_power').innerText = "-";
-            document.getElementById('res_motor_suggest').innerText = "-";
+            document.getElementById('opt_rec_val').innerText = "-";
+            document.getElementById('opt_fut_val').innerText = "-";
             ['v', 'hf', 'h_pump', 'p_oper'].forEach(f => setRowWarning(f, false));
             return;
         }
 
-        const dM = dMm / 1000; // Mét
+        const dM = dMm / 1000;
 
-        // 1. Tính tổn thất thủy lực Hazen-Williams (gộp tổn thất cục bộ)
+        // 1. Tổn thất thủy lực
         const baseCoeff = 10.67 * localLossCoeff;
         const hf = (baseCoeff * L * Math.pow(qSec, 1.852)) / (Math.pow(C, 1.852) * Math.pow(dM, 4.87));
         
-        // 2. Tính vận tốc dòng chảy trong ống
+        // 2. Vận tốc dòng chảy
         const v = (4 * qSec) / (Math.PI * Math.pow(dM, 2));
         
-        // 3. Tính Cột áp tổng máy bơm
+        // 3. Cột áp bơm
         const reqHead = (zTail - zHead) + (hTail - hHead) + hf;
         
-        // 4. Áp lực vận hành ngay sau máy bơm
+        // 4. Áp lực sau máy bơm
         const pOper = (zTail - zHead) + hTail + hf;
 
-        // 5. Tính Công suất điện (kW & HP)
+        // 5. Công suất điện lý thuyết (kW & HP)
         const pKw = reqHead > 0 ? ((9.81 * qSec * reqHead) / eta) : 0;
-        const pHp = pKw * 1.34102; // Quy đổi ra Mã lực (HP)
+        const pHp = pKw * 1.34102;
 
-        // 6. Đề xuất Công suất Động cơ (Dự phòng 15% tải an toàn)
-        const pMotorSuggest = pKw * 1.15;
+        // 6. Công suất có hệ số dự phòng 15%
+        const pRequiredWithSafety = pKw * 1.15;
+
+        // THUẬT TOÁN MAP VÀO BƠM THỰC TẾ TRÊN THỊ TRƯỜNG
+        let recommendedMotor = STANDARD_MOTORS.find(m => m >= pRequiredWithSafety) || STANDARD_MOTORS[STANDARD_MOTORS.length - 1];
+        let recIdx = STANDARD_MOTORS.indexOf(recommendedMotor);
+        let futureMotor = (recIdx < STANDARD_MOTORS.length - 1) ? STANDARD_MOTORS[recIdx + 1] : recommendedMotor;
+
+        let loadPctRec = ((pKw / recommendedMotor) * 100).toFixed(0);
+        let loadPctFut = ((pKw / futureMotor) * 100).toFixed(0);
 
         document.getElementById('res_v').innerText = v.toFixed(3) + " m/s";
         document.getElementById('res_hf').innerText = hf.toFixed(2) + " m";
@@ -499,13 +551,20 @@
         
         if (reqHead > 0) {
             document.getElementById('res_power').innerText = `${pKw.toFixed(2)} kW (${pHp.toFixed(1)} HP)`;
-            document.getElementById('res_motor_suggest').innerText = `≥ ${pMotorSuggest.toFixed(1)} kW (${(pMotorSuggest * 1.341).toFixed(1)} HP)`;
+            
+            // Cập nhật thẻ Gợi ý Thực tế
+            document.getElementById('opt_rec_val').innerText = `${recommendedMotor} kW (${(recommendedMotor * 1.341).toFixed(1)} HP)`;
+            document.getElementById('opt_rec_desc').innerText = `Chạy ở ${loadPctRec}% tải định mức (Đã dự phòng 15% an toàn, tránh quá tải motor).`;
+
+            document.getElementById('opt_fut_val').innerText = `${futureMotor} kW (${(futureMotor * 1.341).toFixed(1)} HP)`;
+            document.getElementById('opt_fut_desc').innerText = `Chạy nhẹ ở ${loadPctFut}% tải (Dự phòng thêm ${(futureMotor - recommendedMotor).toFixed(1)} kW để mở rộng công suất sau này).`;
         } else {
             document.getElementById('res_power').innerText = "0 kW";
-            document.getElementById('res_motor_suggest').innerText = "0 kW";
+            document.getElementById('opt_rec_val').innerText = "0 kW";
+            document.getElementById('opt_fut_val').innerText = "0 kW";
         }
 
-        // --- ĐÁNH GIÁ CẢNH BÁO KỸ THUẬT ---
+        // --- ĐÁNH GIÁ CẢNH BÁO ---
         if (v > 2.5) {
             setRowWarning('v', true, `Vận tốc dòng chảy cao (${v.toFixed(2)} m/s > 2.5 m/s): Nguy cơ búa nước & tổn thất lớn.`, 'red');
         } else if (v < 0.6) {
@@ -524,13 +583,13 @@
         }
 
         if (reqHead >= 60) {
-            setRowWarning('h_pump', true, `Cột áp máy bơm cao (H = ${reqHead.toFixed(2)} m ≥ 60 m): Cần tính toán trạm bơm tăng áp trung gian hoặc nâng đường kính ống.`, 'red');
+            setRowWarning('h_pump', true, `Cột áp máy bơm cao (H = ${reqHead.toFixed(2)} m ≥ 60 m): Cần tính toán trạm bơm tăng áp trung gian.`, 'red');
         } else {
             setRowWarning('h_pump', false);
         }
 
         if (pOper >= 60) {
-            setRowWarning('p_oper', true, `Áp lực đầu ra bơm cao (P = ${pOper.toFixed(2)} m ≈ ${(pOper/10).toFixed(1)} bar): Cần kiểm tra cấp áp lực PN của ống.`, 'red');
+            setRowWarning('p_oper', true, `Áp lực sau bơm cao (P = ${pOper.toFixed(2)} m ≈ ${(pOper/10).toFixed(1)} bar): Cần kiểm tra cấp áp lực PN của ống.`, 'red');
         } else {
             setRowWarning('p_oper', false);
         }
