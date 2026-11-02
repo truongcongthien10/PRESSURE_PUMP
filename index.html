@@ -31,7 +31,7 @@
         }
 
         .container {
-            max-width: 600px;
+            max-width: 650px;
             margin: 0 auto;
             background: var(--card-bg);
             border-radius: 8px;
@@ -109,6 +109,13 @@
             box-shadow: 0 0 0 3px rgba(255, 235, 130, 0.45), 0 3px 8px rgba(0,0,0,0.1);
         }
 
+        .input-group-combo {
+            display: flex;
+            gap: 4px;
+        }
+        .input-group-combo input { flex: 1; }
+        .input-group-combo select { width: 110px; flex: 0 0 110px; font-weight: bold; color: var(--section-title); }
+
         .btn-calc {
             width: 100%;
             background: linear-gradient(135deg, #107c41 0%, #0b592e 100%);
@@ -121,22 +128,13 @@
             cursor: pointer;
             margin-top: 14px;
             margin-bottom: 8px;
-            box-shadow: 0 5px 0 #07331a, 0 8px 12px rgba(0,0,0,0.25);
+            box-shadow: 0 4px 0 #07331a, 0 6px 10px rgba(0,0,0,0.2);
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            top: 0;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.4);
         }
 
         .btn-calc:hover {
             background: linear-gradient(135deg, #13914c 0%, #0d6937 100%);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 0 #07331a, 0 12px 18px rgba(0,0,0,0.3);
-        }
-
-        .btn-calc:active {
-            transform: translateY(3px);
-            box-shadow: 0 2px 0 #07331a, 0 4px 6px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
         }
 
         .result-box {
@@ -164,7 +162,7 @@
 
         .result-label { color: #2e4d32; font-weight: 600; }
         .result-value { font-weight: 700; color: var(--accent-blue); font-size: 0.95rem; }
-        .highlight { color: #d83b01; font-size: 1rem; }
+        .highlight { color: #d83b01; font-size: 1.05rem; }
 
         .inline-warn {
             display: none;
@@ -208,62 +206,88 @@
 <body>
 
 <div class="container">
-    <div class="header-bar">TÍNH TOÁN CÔNG SUẤT MÁY BƠM & CỘT ÁP BƠM - 2026</div>
+    <div class="header-bar">TÍNH TOÁN CÔNG SUẤT MÁY BƠM & CỘT ÁP BƠM - HUEWACO</div>
     
     <div class="content">
-        <div class="section-title">Dữ Liệu Đầu Vào</div>
+        <div class="section-title">Dữ Liệu Đầu Vào Vận Hành</div>
         <div class="form-grid">
-            <div class="form-group">
-                <label for="q_day">Lưu lượng Q (m³/ngđ):</label>
-                <input type="number" id="q_day" value="10000" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
-            </div>
             
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="q_val">Lưu lượng bơm (Q):</label>
+                <div class="input-group-combo">
+                    <input type="number" id="q_val" value="416.7" step="0.1" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
+                    <select id="q_unit" onchange="calculateHydraulics()">
+                        <option value="m3h" selected>m³/giờ</option>
+                        <option value="ls">Lít/giây</option>
+                        <option value="m3d">m³/ngđ</option>
+                    </select>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label for="material">Vật liệu ống:</label>
                 <select id="material" onchange="updatePipeDiameters()">
-                    <option value="hdpe" data-c="140" selected>Ống HDPE (PN10 / SDR17)</option>
-                    <option value="di" data-c="130">Ống Gang dẻo DI (Class C/K9)</option>
-                    <option value="pvc" data-c="140">Ống uPVC (PN10)</option>
-                    <option value="steel" data-c="120">Ống Thép (Steel Pipe SCH40)</option>
-                    <option value="inox" data-c="140">Ống Inox (Stainless Steel)</option>
+                    <option value="hdpe" data-c="140" selected>Ống HDPE (PN10)</option>
+                    <option value="di" data-c="130">Ống Gang dẻo DI</option>
+                    <option value="pvc" data-c="140">Ống uPVC</option>
+                    <option value="steel" data-c="120">Ống Thép (Steel SCH40)</option>
+                    <option value="inox" data-c="140">Ống Inox</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="d_mm">Đường kính D (mm):</label>
+                <label for="d_mm">Cỡ ống (DN) & D<sub>trong</sub>:</label>
                 <select id="d_mm" onchange="calculateHydraulics()"></select>
             </div>
 
             <div class="form-group">
-                <label for="length">Chiều dài L (m):</label>
+                <label for="length">Chiều dài tuyến L (m):</label>
                 <input type="number" id="length" value="18700" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
+            </div>
+
+            <div class="form-group">
+                <label for="local_loss_pct">Tổn thất cục bộ (%):</label>
+                <select id="local_loss_pct" onchange="calculateHydraulics()">
+                    <option value="1.10" selected>10% (Tuyến dài thông thường)</option>
+                    <option value="1.15">15% (Nhiều co co, tê, van)</option>
+                    <option value="1.20">20% (Tuyến ngắn trong trạm)</option>
+                </select>
             </div>
 
             <div class="form-group">
                 <label for="h_head">Áp lực có sẵn điểm đầu (m):</label>
                 <input type="number" id="h_head" value="40" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
             </div>
+
             <div class="form-group">
                 <label for="h_tail">Áp lực yêu cầu điểm cuối (m):</label>
                 <input type="number" id="h_tail" value="15" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
             </div>
+
             <div class="form-group">
                 <label for="z_head">Cao độ Z điểm đầu (m):</label>
                 <input type="number" id="z_head" value="3" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
             </div>
+
             <div class="form-group">
                 <label for="z_tail">Cao độ Z điểm cuối (m):</label>
                 <input type="number" id="z_tail" value="6" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
             </div>
+
             <div class="form-group" style="grid-column: span 2;">
-                <label for="efficiency">Hiệu suất bơm (η):</label>
-                <input type="number" id="efficiency" value="0.75" step="0.01" inputmode="decimal" onfocus="this.select()" onchange="calculateHydraulics()">
+                <label for="efficiency">Hiệu suất bơm tổng cộng (η):</label>
+                <select id="efficiency" onchange="calculateHydraulics()">
+                    <option value="0.75" selected>η = 0.75 (Bơm ly tâm trục ngang chuẩn)</option>
+                    <option value="0.80">η = 0.80 (Bơm hiệu suất cao High-Eff)</option>
+                    <option value="0.70">η = 0.70 (Bơm đã qua sử dụng lâu năm)</option>
+                    <option value="0.65">η = 0.65 (Bơm chìm / Bơm giàn)</option>
+                </select>
             </div>
         </div>
 
-        <button class="btn-calc" onclick="calculateHydraulics()">Cập Nhật Tính Toán</button>
+        <button class="btn-calc" onclick="calculateHydraulics()">🔄 Cập Nhật Tính Toán</button>
 
-        <div class="section-title">Kết Quả Tính Toán</div>
+        <div class="section-title">Kết Quả Tính Toán & Đánh Giá</div>
         <div class="result-box">
             
             <!-- Vận tốc -->
@@ -293,7 +317,7 @@
             <!-- Cột áp tổng máy bơm -->
             <div class="result-row">
                 <div class="result-main">
-                    <span class="result-label">Cột áp tổng máy bơm:</span>
+                    <span class="result-label">Cột áp tổng máy bơm (H<sub>bơm</sub>):</span>
                     <div>
                         <span class="result-value highlight" id="res_h_pump">- m</span>
                         <span id="badge_h_pump"></span>
@@ -305,7 +329,7 @@
             <!-- Áp lực vận hành -->
             <div class="result-row">
                 <div class="result-main">
-                    <span class="result-label">Áp lực vận hành sau bơm:</span>
+                    <span class="result-label">Áp lực xuất xưởng sau bơm:</span>
                     <div>
                         <span class="result-value" id="res_p_oper">- m</span>
                         <span id="badge_p_oper"></span>
@@ -314,11 +338,19 @@
                 <div id="warn_p_oper" class="inline-warn"></div>
             </div>
 
-            <!-- Công suất điện -->
+            <!-- Công suất Thủy lực & Công suất Điện -->
             <div class="result-row">
                 <div class="result-main">
-                    <span class="result-label">Công suất điện máy bơm (P):</span>
-                    <span class="result-value highlight" id="res_power">- kW</span>
+                    <span class="result-label">Công suất điện máy bơm:</span>
+                    <span class="result-value highlight" id="res_power">- kW (- HP)</span>
+                </div>
+            </div>
+
+            <!-- Gợi ý chọn Công suất Motor -->
+            <div class="result-row">
+                <div class="result-main">
+                    <span class="result-label">Đề xuất công suất Động cơ (Motor):</span>
+                    <span class="result-value" id="res_motor_suggest" style="color: #107c41;">- kW</span>
                 </div>
             </div>
 
@@ -374,7 +406,7 @@
         pipes.forEach((pipe, index) => {
             const option = document.createElement('option');
             option.value = pipe.id;
-            option.textContent = `${pipe.dn} (Di = ${pipe.id} mm)`;
+            option.textContent = `${pipe.dn} (D_trong = ${pipe.id} mm)`;
             if (pipe.dn.includes("350") || pipe.dn.includes("355") || index === Math.floor(pipes.length / 2)) {
                 option.selected = true;
             }
@@ -405,80 +437,100 @@
     }
 
     function calculateHydraulics() {
-        const qDay = parseFloat(document.getElementById('q_day').value) || 0;
+        const qVal = parseFloat(document.getElementById('q_val').value) || 0;
+        const qUnit = document.getElementById('q_unit').value;
+        
+        // Quy đổi lưu lượng Q ra m3/s
+        let qSec = 0;
+        if (qUnit === 'm3h') qSec = qVal / 3600;
+        else if (qUnit === 'ls') qSec = qVal / 1000;
+        else if (qUnit === 'm3d') qSec = qVal / 86400;
+
         const dMm = parseFloat(document.getElementById('d_mm').value) || 0;
         const L = parseFloat(document.getElementById('length').value) || 0;
         
         const materialSelect = document.getElementById('material');
         const C = parseFloat(materialSelect.options[materialSelect.selectedIndex].getAttribute('data-c')) || 140;
+        const localLossCoeff = parseFloat(document.getElementById('local_loss_pct').value) || 1.10;
 
-        const hHead = parseFloat(document.getElementById('h_head').value) || 0; // Áp lực có sẵn điểm đầu (m)
-        const hTail = parseFloat(document.getElementById('h_tail').value) || 0; // Áp lực yêu cầu điểm cuối (m)
-        const zHead = parseFloat(document.getElementById('z_head').value) || 0; // Cao độ Z điểm đầu (m)
-        const zTail = parseFloat(document.getElementById('z_tail').value) || 0; // Cao độ Z điểm cuối (m)
+        const hHead = parseFloat(document.getElementById('h_head').value) || 0;
+        const hTail = parseFloat(document.getElementById('h_tail').value) || 0;
+        const zHead = parseFloat(document.getElementById('z_head').value) || 0;
+        const zTail = parseFloat(document.getElementById('z_tail').value) || 0;
         const eta = parseFloat(document.getElementById('efficiency').value) || 0.75;
 
-        if (qDay <= 0 || dMm <= 0 || L <= 0) {
+        if (qSec <= 0 || dMm <= 0 || L <= 0) {
             document.getElementById('res_v').innerText = "0 m/s";
             document.getElementById('res_hf').innerText = "0 m";
             document.getElementById('res_h_pump').innerText = "-";
             document.getElementById('res_p_oper').innerText = "-";
             document.getElementById('res_power').innerText = "-";
+            document.getElementById('res_motor_suggest').innerText = "-";
             ['v', 'hf', 'h_pump', 'p_oper'].forEach(f => setRowWarning(f, false));
             return;
         }
 
-        const qSec = qDay / 86400; // m3/s
-        const dM = dMm / 1000;     // m
+        const dM = dMm / 1000; // Mét
 
-        // 1. Tính tổn thất dọc đường (Đã chỉnh về hằng số chuẩn 11.737)
-        const hf = (11.737 * L * Math.pow(qSec, 1.852)) / (Math.pow(C, 1.852) * Math.pow(dM, 4.87));
+        // 1. Tính tổn thất thủy lực Hazen-Williams (gộp tổn thất cục bộ)
+        const baseCoeff = 10.67 * localLossCoeff;
+        const hf = (baseCoeff * L * Math.pow(qSec, 1.852)) / (Math.pow(C, 1.852) * Math.pow(dM, 4.87));
         
         // 2. Tính vận tốc dòng chảy trong ống
         const v = (4 * qSec) / (Math.PI * Math.pow(dM, 2));
         
-        // 3. Tính Cột áp tổng máy bơm: H_bơm = (Z_cuối - Z_đầu) + (P_cuối - P_đầu_có_sẵn) + Hf
+        // 3. Tính Cột áp tổng máy bơm
         const reqHead = (zTail - zHead) + (hTail - hHead) + hf;
         
         // 4. Áp lực vận hành ngay sau máy bơm
         const pOper = (zTail - zHead) + hTail + hf;
 
+        // 5. Tính Công suất điện (kW & HP)
+        const pKw = reqHead > 0 ? ((9.81 * qSec * reqHead) / eta) : 0;
+        const pHp = pKw * 1.34102; // Quy đổi ra Mã lực (HP)
+
+        // 6. Đề xuất Công suất Động cơ (Dự phòng 15% tải an toàn)
+        const pMotorSuggest = pKw * 1.15;
+
         document.getElementById('res_v').innerText = v.toFixed(3) + " m/s";
         document.getElementById('res_hf').innerText = hf.toFixed(2) + " m";
         document.getElementById('res_h_pump').innerText = reqHead > 0 ? reqHead.toFixed(2) + " m" : "Không cần bơm";
         document.getElementById('res_p_oper').innerText = reqHead > 0 ? pOper.toFixed(2) + " m" : "-";
-        document.getElementById('res_power').innerText = reqHead > 0 ? ((9.81 * qSec * reqHead) / eta).toFixed(2) + " kW" : "0 kW";
+        
+        if (reqHead > 0) {
+            document.getElementById('res_power').innerText = `${pKw.toFixed(2)} kW (${pHp.toFixed(1)} HP)`;
+            document.getElementById('res_motor_suggest').innerText = `≥ ${pMotorSuggest.toFixed(1)} kW (${(pMotorSuggest * 1.341).toFixed(1)} HP)`;
+        } else {
+            document.getElementById('res_power').innerText = "0 kW";
+            document.getElementById('res_motor_suggest').innerText = "0 kW";
+        }
 
         // --- ĐÁNH GIÁ CẢNH BÁO KỸ THUẬT ---
-        // 1. Vận tốc v
         if (v > 2.5) {
-            setRowWarning('v', true, `Vận tốc dòng chảy cao (${v.toFixed(2)} m/s > 2.5 m/s): Nguy cơ va đập thủy lực (búa nước).`, 'red');
+            setRowWarning('v', true, `Vận tốc dòng chảy cao (${v.toFixed(2)} m/s > 2.5 m/s): Nguy cơ búa nước & tổn thất lớn.`, 'red');
         } else if (v < 0.6) {
-            setRowWarning('v', true, `Vận tốc thấp (${v.toFixed(2)} m/s < 0.6 m/s): Nguy cơ lắng cặn trong đường ống.`, 'yellow');
+            setRowWarning('v', true, `Vận tốc thấp (${v.toFixed(2)} m/s < 0.6 m/s): Dễ đóng cặn trong đường ống.`, 'yellow');
         } else {
             setRowWarning('v', false);
         }
 
-        // 2. Tổn thất thủy lực Hf
-        const iLoss = hf / (L / 1000); // m/km
+        const iLoss = hf / (L / 1000);
         if (iLoss >= 10) {
-            setRowWarning('hf', true, `Tổn thất đơn vị lớn (i = ${iLoss.toFixed(2)} m/km ≥ 10 m/km): Nên tăng đường kính ống D để giảm ma sát & tiết kiệm điện năng.`, 'red');
+            setRowWarning('hf', true, `Tổn thất đơn vị lớn (i = ${iLoss.toFixed(2)} m/km ≥ 10 m/km): Nên chọn đường kính D lớn hơn.`, 'red');
         } else if (hf >= 50) {
-            setRowWarning('hf', true, `Tổng tổn thất thủy lực lớn (Hf = ${hf.toFixed(2)} m ≥ 50 m): Tiêu hao nhiều điện năng trên đường ống dài.`, 'yellow');
+            setRowWarning('hf', true, `Tổng tổn thất thủy lực lớn (Hf = ${hf.toFixed(2)} m ≥ 50 m): Tiêu hao nhiều điện năng.`, 'yellow');
         } else {
             setRowWarning('hf', false);
         }
 
-        // 3. Cột áp tổng máy bơm
         if (reqHead >= 60) {
-            setRowWarning('h_pump', true, `Cột áp máy bơm cao (H = ${reqHead.toFixed(2)} m ≥ 60 m): Cần tính toán chọn vị trí trạm tăng áp.`, 'red');
+            setRowWarning('h_pump', true, `Cột áp máy bơm cao (H = ${reqHead.toFixed(2)} m ≥ 60 m): Cần tính toán trạm bơm tăng áp trung gian.`, 'red');
         } else {
             setRowWarning('h_pump', false);
         }
 
-        // 4. Áp lực vận hành sau bơm
         if (pOper >= 60) {
-            setRowWarning('p_oper', true, `Áp lực vận hành lớn (P = ${pOper.toFixed(2)} m ≈ ${(pOper/10).toFixed(1)} bar ≥ 60 m): Nguy hiểm cho đường ống & phụ kiện.`, 'red');
+            setRowWarning('p_oper', true, `Áp lực xuất xưởng cao (P = ${pOper.toFixed(2)} m ≈ ${(pOper/10).toFixed(1)} bar): Cần kiểm tra cấp áp lực PN của ống.`, 'red');
         } else {
             setRowWarning('p_oper', false);
         }
