@@ -182,21 +182,37 @@
         .result-value { font-weight: 700; color: var(--accent-blue); font-size: 0.95rem; }
         .highlight { color: #d83b01; font-size: 1.05rem; }
 
-        /* KHỐI ĐỀ XUẤT CHỌN BƠM THỰC TẾ */
+        /* KHỐI ĐỀ XUẤT THÔNG SỐ CHỌN BƠM THỰC TẾ */
         .motor-selection-panel {
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 12px;
+            padding: 12px;
             background: #ffffff;
             border: 1.5px solid #107c41;
-            border-radius: 6px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
         }
         .panel-title {
-            font-size: 0.85rem;
+            font-size: 0.88rem;
             font-weight: 800;
             color: #107c41;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             text-transform: uppercase;
         }
+        .spec-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+        .spec-item { display: flex; justify-content: space-between; }
+        .spec-item span:first-child { color: #475569; }
+        .spec-item span:last-child { font-weight: 700; color: #0f172a; }
+
         .option-card {
             background: #f8fafc;
             border: 1px solid #cbd5e1;
@@ -394,13 +410,32 @@
 
         </div>
 
-        <!-- BẢNG GỢI Ý CHỌN LOẠI BƠM THỰC TẾ -->
+        <!-- BẢNG GỢI Ý THÔNG SỐ ĐẶT HÀNG / CHỌN BƠM THỰC TẾ -->
         <div class="motor-selection-panel" id="motorPanel">
-            <div class="panel-title">🛒 Đề xuất Chọn Động cơ Bơm Thương mại (Tiêu chuẩn IEC)</div>
+            <div class="panel-title">📋 THÔNG SỐ KỸ THUẬT ĐỂ ĐẶT MUA MÁY BƠM (Ebara, Grundfos, Pentax...)</div>
             
+            <div class="spec-grid">
+                <div class="spec-item">
+                    <span>Họng hút đề xuất:</span>
+                    <span id="spec_dn_suction">DN--</span>
+                </div>
+                <div class="spec-item">
+                    <span>Họng đẩy đề xuất:</span>
+                    <span id="spec_dn_discharge">DN--</span>
+                </div>
+                <div class="spec-item">
+                    <span>Tốc độ motor:</span>
+                    <span id="spec_rpm">-- rpm</span>
+                </div>
+                <div class="spec-item">
+                    <span>Kiểu bơm đề xuất:</span>
+                    <span id="spec_pump_type">Ly tâm trục ngang</span>
+                </div>
+            </div>
+
             <div class="option-card recommended">
                 <div class="opt-header">
-                    <span style="color:#15803d;">✅ LỰA CHỌN TỐI ƯU HIỆN TẠI:</span>
+                    <span style="color:#15803d;">✅ ĐỘNG CƠ TỐI ƯU HIỆN TẠI:</span>
                     <span id="opt_rec_val" style="color:#16a34a; font-size:0.95rem;">- kW</span>
                 </div>
                 <div class="opt-desc" id="opt_rec_desc">Cung cấp đủ 100% công suất yêu cầu kèm hệ số an toàn.</div>
@@ -408,7 +443,7 @@
 
             <div class="option-card future">
                 <div class="opt-header">
-                    <span style="color:#0369a1;">🚀 LỰA CHỌN DỰ PHÒNG TƯƠNG LAI:</span>
+                    <span style="color:#0369a1;">🚀 ĐỘNG CƠ DỰ PHÒNG TƯƠNG LAI:</span>
                     <span id="opt_fut_val" style="color:#0284c7; font-size:0.95rem;">- kW</span>
                 </div>
                 <div class="opt-desc" id="opt_fut_desc">Dự phòng sẵn công suất khi nhu cầu dùng nước tăng hoặc mở rộng mạng lưới.</div>
@@ -425,7 +460,6 @@
 <script>
     const STORAGE_KEY = "huewaco_pump_calc_inputs_v1";
 
-    // DẢI CÔNG SUẤT MOTOR TIÊU CHUẨN THƯƠNG MẠI (IEC / NEMA STANDARD)
     const STANDARD_MOTORS = [
         0.75, 1.1, 1.5, 2.2, 3.0, 4.0, 5.5, 7.5, 11.0, 15.0, 18.5, 22.0, 30.0, 
         37.0, 45.0, 55.0, 75.0, 90.0, 110.0, 132.0, 160.0, 200.0, 220.0, 250.0, 315.0, 400.0, 500.0
@@ -572,6 +606,39 @@
         }
     }
 
+    // HÀM TƯ VẤN KÍCH THƯỚC HỌNG BƠM VÀ TỐC ĐỘ VÒNG QUAY
+    function suggestPumpHardwareSpecs(qM3h, reqHead) {
+        let qM3s = qM3h / 3600;
+        
+        // Vận tốc qua họng hút chọn v_suction ≈ 1.8 - 2.2 m/s
+        let dSucIdealM = Math.sqrt((4 * qM3s) / (Math.PI * 2.0));
+        let dSucMm = dSucIdealM * 1000;
+        
+        let dnSuc = "DN100";
+        if (dSucMm <= 65) dnSuc = "DN65";
+        else if (dSucMm <= 80) dnSuc = "DN80";
+        else if (dSucMm <= 100) dnSuc = "DN100";
+        else if (dSucMm <= 125) dnSuc = "DN125";
+        else if (dSucMm <= 150) dnSuc = "DN150";
+        else if (dSucMm <= 200) dnSuc = "DN200";
+        else if (dSucMm <= 250) dnSuc = "DN250";
+        else dnSuc = "DN300";
+
+        // Họng đẩy nhỏ hơn họng hút 1 cấp chuẩn
+        let dnDisMap = { "DN65":"DN50", "DN80":"DN65", "DN100":"DN80", "DN125":"DN100", "DN150":"DN125", "DN200":"DN150", "DN250":"DN200", "DN300":"DN250" };
+        let dnDis = dnDisMap[dnSuc] || "DN200";
+
+        // Tốc độ vòng quay motor
+        let rpm = "1450 rpm (4 cực)";
+        if (reqHead > 45 && qM3h < 150) {
+            rpm = "2900 rpm (2 cực)";
+        }
+
+        let pumpType = (reqHead > 60 && qM3h < 80) ? "Trục đứng đa tầng cánh" : "Ly tâm trục ngang";
+
+        return { dnSuc, dnDis, rpm, pumpType };
+    }
+
     function calculateHydraulics() {
         saveInputsToStorage();
 
@@ -579,9 +646,10 @@
         const qUnit = document.getElementById('q_unit').value;
         
         let qSec = 0;
-        if (qUnit === 'm3h') qSec = qVal / 3600;
-        else if (qUnit === 'ls') qSec = qVal / 1000;
-        else if (qUnit === 'm3d') qSec = qVal / 86400;
+        let qM3h = 0;
+        if (qUnit === 'm3h') { qSec = qVal / 3600; qM3h = qVal; }
+        else if (qUnit === 'ls') { qSec = qVal / 1000; qM3h = qVal * 3.6; }
+        else if (qUnit === 'm3d') { qSec = qVal / 86400; qM3h = qVal / 24; }
 
         const dMm = parseFloat(document.getElementById('d_mm').value) || 0;
         const L = parseFloat(document.getElementById('length').value) || 0;
@@ -610,17 +678,17 @@
 
         const dM = dMm / 1000;
 
-        // 1. Tổn thất thủy lực Hazen-Williams (Hằng số 11.737 / 10.67 gộp tổn thất cục bộ)
+        // 1. Tổn thất thủy lực
         const baseCoeff = 10.67 * localLossCoeff;
         const hf = (baseCoeff * L * Math.pow(qSec, 1.852)) / (Math.pow(C, 1.852) * Math.pow(dM, 4.87));
         
         // 2. Vận tốc dòng chảy
         const v = (4 * qSec) / (Math.PI * Math.pow(dM, 2));
         
-        // 3. Cột áp tổng máy bơm: H_bơm = (Z_cuối - Z_đầu) + (P_cuối - P_đầu_có_sẵn) + Hf
+        // 3. Cột áp tổng máy bơm
         const reqHead = (zTail - zHead) + (hTail - hHead) + hf;
         
-        // 4. Áp lực thực tế ngay sau máy bơm: P_sau_bơm = P_đầu_có_sẵn + H_bơm (Nếu cần bơm)
+        // 4. Áp lực thực tế ngay sau máy bơm
         const pOper = reqHead > 0 ? (hHead + reqHead) : hHead;
 
         // 5. Công suất điện lý thuyết (kW & HP)
@@ -630,13 +698,20 @@
         // 6. Công suất có hệ số dự phòng 15%
         const pRequiredWithSafety = pKw * 1.15;
 
-        // THUẬT TOÁN MAP VÀO BƠM THỰC TẾ TRÊN THỊ TRƯỜNG
+        // MAP VÀO BƠM THỰC TẾ TRÊN THỊ TRƯỜNG
         let recommendedMotor = STANDARD_MOTORS.find(m => m >= pRequiredWithSafety) || STANDARD_MOTORS[STANDARD_MOTORS.length - 1];
         let recIdx = STANDARD_MOTORS.indexOf(recommendedMotor);
         let futureMotor = (recIdx < STANDARD_MOTORS.length - 1) ? STANDARD_MOTORS[recIdx + 1] : recommendedMotor;
 
         let loadPctRec = ((pKw / recommendedMotor) * 100).toFixed(0);
         let loadPctFut = ((pKw / futureMotor) * 100).toFixed(0);
+
+        // TÍNH TOÁN THÔNG SỐ PHẦN CỨNG BƠM ĐỀ XUẤT
+        const hwSpecs = suggestPumpHardwareSpecs(qM3h, reqHead);
+        document.getElementById('spec_dn_suction').innerText = hwSpecs.dnSuc;
+        document.getElementById('spec_dn_discharge').innerText = hwSpecs.dnDis;
+        document.getElementById('spec_rpm').innerText = hwSpecs.rpm;
+        document.getElementById('spec_pump_type').innerText = hwSpecs.pumpType;
 
         document.getElementById('res_v').innerText = v.toFixed(3) + " m/s";
         document.getElementById('res_hf').innerText = hf.toFixed(2) + " m";
@@ -657,7 +732,7 @@
             document.getElementById('opt_fut_val').innerText = "0 kW";
         }
 
-        // --- ĐÁNH GIÁ CẢNH BÁO KỸ THUẬT ---
+        // --- ĐÁNH GIÁ CẢNH BÁO ---
         if (v > 2.5) {
             setRowWarning('v', true, `Vận tốc dòng chảy cao (${v.toFixed(2)} m/s > 2.5 m/s): Nguy cơ búa nước & tổn thất lớn.`, 'red');
         } else if (v < 0.6) {
